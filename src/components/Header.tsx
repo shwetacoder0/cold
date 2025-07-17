@@ -76,10 +76,18 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
                       {userTokens?.tokens || 0} tokens
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2 bg-white/80 px-3 py-2 rounded-full border border-amber-200/50 shadow-md">
-                    <User className="w-4 h-4 text-amber-600" />
+                  <div className="flex items-center space-x-3 bg-white/80 px-3 py-2 rounded-full border border-amber-200/50 shadow-md">
+                    {user.user_metadata?.avatar_url ? (
+                      <img 
+                        src={user.user_metadata.avatar_url} 
+                        alt="Profile"
+                        className="w-6 h-6 rounded-full border border-amber-200"
+                      />
+                    ) : (
+                      <User className="w-4 h-4 text-amber-600" />
+                    )}
                     <span className="text-sm font-semibold text-amber-900 font-noto">
-                      {user.email?.split('@')[0]}
+                      {user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0]}
                     </span>
                   </div>
                   <button
