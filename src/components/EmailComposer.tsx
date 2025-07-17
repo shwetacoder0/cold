@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Send, Paperclip, Image, Sparkles, Wand2, Copy, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { generateColdEmail, EmailGenerationResponse } from '../lib/gemini';
+import { generateColdEmail, generateColdEmailWithUserContext, EmailGenerationResponse } from '../lib/gemini';
 
 const EmailComposer: React.FC = () => {
-  const { user, userTokens, useToken } = useAuth();
+  const { user, userTokens, userProfile, useToken } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedEmail, setGeneratedEmail] = useState<EmailGenerationResponse | null>(null);
@@ -41,10 +41,16 @@ const EmailComposer: React.FC = () => {
         attachmentContext = `User has attached ${attachments.length} file(s): ${attachments.map(f => f.name).join(', ')}. Consider this context when generating the email.`;
       }
 
-      const emailResponse = await generateColdEmail({
-        prompt,
-        attachmentContext
-      });
+      // Use user profile context if available
+      const emailResponse = userProfile?.user_details 
+        ? await generateColdEmailWithUserContext({
+            prompt,
+            attachmentContext
+          }, userProfile.user_details)
+        : await generateColdEmail({
+            prompt,
+            attachmentContext
+          });
 
       setGeneratedEmail(emailResponse);
     } catch (err) {
@@ -193,6 +199,14 @@ const EmailComposer: React.FC = () => {
                 <div className="mt-3 p-3 bg-red-100/50 rounded-xl border border-red-200">
                   <p className="text-xs text-red-800 font-medium">
                     You've used all your tokens. Purchase more to continue generating emails.
+                  </p>
+                </div>
+              )}
+              
+              {user && userProfile && (
+                <div className="mt-3 p-3 bg-green-100/50 rounded-xl border border-green-200">
+                  <p className="text-xs text-green-800 font-medium">
+                    ✅ Your profile information will be used to personalize the email generation.
                   </p>
                 </div>
               )}

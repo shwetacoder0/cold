@@ -4,8 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 
 interface HeaderProps {
-  activeSection: 'templates' | 'compose' | 'pricing';
-  setActiveSection: (section: 'templates' | 'compose' | 'pricing') => void;
+  activeSection: 'templates' | 'compose' | 'pricing' | 'profile';
+  setActiveSection: (section: 'templates' | 'compose' | 'pricing' | 'profile') => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
@@ -65,6 +65,19 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
               >
                 Pricing
               </button>
+              
+              {user && (
+                <button
+                  onClick={() => setActiveSection('profile')}
+                  className={`text-sm font-medium transition-all duration-200 px-3 py-1.5 rounded-full ${
+                    activeSection === 'profile'
+                      ? 'text-amber-900 bg-amber-200/50 shadow-inner'
+                      : 'text-amber-700 hover:text-amber-900 hover:bg-amber-100/50'
+                  }`}
+                >
+                  Profile
+                </button>
+              )}
             </nav>
             
             <div className="flex items-center space-x-3">

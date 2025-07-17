@@ -1,16 +1,43 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { generateUserDetails } from '../lib/gemini'
 
 interface UserTokens {
   tokens: number
   plan: 'free' | 'basic' | 'pro'
 }
 
+interface UserProfile {
+  input_text: string
+  user_details: string
+  updated_at: string
+}
+
+interface UserDocument {
+  id: string
+  document_name: string
+  document_type: string
+  file_size: number
+  created_at: string
+}
+
+interface CreateProfileData {
+  inputText: string
+  userDetails: string
+  documents: Array<{
+    name: string
+    type: string
+    size: number
+  }>
+}
+
 interface AuthContextType {
   user: User | null
   session: Session | null
   userTokens: UserTokens | null
+  userProfile: UserProfile | null
+  needsOnboarding: boolean
   loading: boolean
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
@@ -18,6 +45,11 @@ interface AuthContextType {
   signOut: () => Promise<{ error: AuthError | null }>
   useToken: () => Promise<boolean>
   purchaseTokens: (plan: 'basic' | 'pro') => Promise<{ error: Error | null }>
+  createUserProfile: (data: CreateProfileData) => Promise<{ error: Error | null }>
+  getUserProfile: () => Promise<UserProfile | null>
+  updateUserProfile: (inputText: string) => Promise<{ error: Error | null }>
+  getUserDocuments: () => Promise<UserDocument[] | null>
+  deleteUserDocument: (documentId: string) => Promise<{ error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -34,6 +66,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [userTokens, setUserTokens] = useState<UserTokens | null>(null)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const fetchUserTokens = async (userId: string) => {
@@ -72,6 +106,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('input_text, user_details, updated_at')
+        .eq('user_id', userId)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user profile:', error)
+        return
+      }
+
+      if (data) {
+        setUserProfile(data)
+        setNeedsOnboarding(false)
+      } else {
+        setUserProfile(null)
+        setNeedsOnboarding(true)
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error)
+    }
+  }
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -79,6 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchUserTokens(session.user.id)
+        fetchUserProfile(session.user.id)
       }
       setLoading(false)
     })
@@ -99,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchUserTokens(session.user.id)
+        fetchUserProfile(session.user.id)
       }
       setLoading(false)
     })
@@ -135,6 +196,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     setUserTokens(null)
+    setUserProfile(null)
+    setNeedsOnboarding(false)
     return { error }
   }
 
@@ -194,10 +257,152 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  const createUserProfile = async (data: CreateProfileData): Promise<{ error: Error | null }> => {
+    if (!user) return { error: new Error('User not authenticated') }
+
+    try {
+      // Insert user profile
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert([
+          {
+            user_id: user.id,
+            input_text: data.inputText,
+            user_details: data.userDetails
+          }
+        ])
+
+      if (profileError) {
+        return { error: new Error(profileError.message) }
+      }
+
+      // Insert documents
+      if (data.documents.length > 0) {
+        const documentInserts = data.documents.map(doc => ({
+          user_id: user.id,
+          document_name: doc.name,
+          document_type: doc.type,
+          file_size: doc.size
+        }))
+
+        const { error: docsError } = await supabase
+          .from('user_documents')
+          .insert(documentInserts)
+
+        if (docsError) {
+          console.error('Error inserting documents:', docsError)
+          // Don't fail the whole operation for document errors
+        }
+      }
+
+      // Refresh profile data
+      await fetchUserProfile(user.id)
+      
+      return { error: null }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  }
+
+  const getUserProfile = async (): Promise<UserProfile | null> => {
+    if (!user) return null
+
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('input_text, user_details, updated_at')
+        .eq('user_id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching user profile:', error)
+        return null
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error in getUserProfile:', error)
+      return null
+    }
+  }
+
+  const updateUserProfile = async (inputText: string): Promise<{ error: Error | null }> => {
+    if (!user) return { error: new Error('User not authenticated') }
+
+    try {
+      // Generate new user details
+      const userDetails = await generateUserDetails(inputText, '')
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          input_text: inputText,
+          user_details: userDetails,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+
+      if (error) {
+        return { error: new Error(error.message) }
+      }
+
+      // Refresh profile data
+      await fetchUserProfile(user.id)
+      
+      return { error: null }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  }
+
+  const getUserDocuments = async (): Promise<UserDocument[] | null> => {
+    if (!user) return null
+
+    try {
+      const { data, error } = await supabase
+        .from('user_documents')
+        .select('id, document_name, document_type, file_size, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching user documents:', error)
+        return null
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error in getUserDocuments:', error)
+      return null
+    }
+  }
+
+  const deleteUserDocument = async (documentId: string): Promise<{ error: Error | null }> => {
+    if (!user) return { error: new Error('User not authenticated') }
+
+    try {
+      const { error } = await supabase
+        .from('user_documents')
+        .delete()
+        .eq('id', documentId)
+        .eq('user_id', user.id)
+
+      if (error) {
+        return { error: new Error(error.message) }
+      }
+
+      return { error: null }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  }
+
   const value = {
     user,
     session,
     userTokens,
+    userProfile,
+    needsOnboarding,
     loading,
     signUp,
     signIn,
@@ -205,6 +410,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     useToken,
     purchaseTokens,
+    createUserProfile,
+    getUserProfile,
+    updateUserProfile,
+    getUserDocuments,
+    deleteUserDocument,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
