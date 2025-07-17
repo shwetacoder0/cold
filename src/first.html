@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Work+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --background: #f8f9fa;
+        --card-bg: #ffffff;
+        --primary: #197fe5;
+        --text-primary: #121212;
+        --text-secondary: #5f6368;
+        --accent-blue: #e8f0fe;
+        --accent-green: #e6f4ea;
+        --border-color: #e0e0e0;
+      }
+      .neumorphic-shadow {
+        box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+      }
+      .neumorphic-shadow-inset {
+        box-shadow: inset 8px 8px 16px #d1d9e6, inset -8px -8px 16px #ffffff;
+      }
+      .sticky-note {
+        background-color: #fffde7;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: rotate(-2deg);
+        position: relative;
+      }
+      .doodle {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        opacity: 0.5;
+      }
+    </style>
+</head>
+<body class="bg-[var(--background)]" style='font-family: "Work Sans", "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap px-10 py-4">
+<div class="flex items-center gap-3 text-[var(--text-primary)]">
+<svg class="h-8 w-8 text-[var(--primary)]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21.71,5.29l-4-4a1,1,0,0,0-1.42,0l-12,12a1,1,0,0,0,0,1.42l4,4a1,1,0,0,0,1.42,0l12-12A1,1,0,0,0,21.71,5.29ZM11,12.59,7.41,9,9,7.41,12.59,11ZM15,11.59,10.41,7,12,5.41,16.59,10ZM9.59,14,6,10.41,7.41,9,11,12.59Zm7-7L15,8.59,11.41,5,13,3.41ZM18,13.59,14.41,10,16,8.41,19.59,12Z"></path>
+</svg>
+<h2 class="text-2xl font-bold leading-tight tracking-tight">MailCraft AI</h2>
+</div>
+<div class="flex flex-1 justify-end gap-6">
+<nav class="flex items-center gap-8">
+<a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" href="#">Templates</a>
+<a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" href="#">Features</a>
+<a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" href="#">Pricing</a>
+</nav>
+<div class="flex gap-4">
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-6 bg-[var(--card-bg)] text-[var(--text-primary)] text-base font-bold shadow-sm hover:shadow-md transition-shadow">
+<span class="truncate">Login</span>
+</button>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-6 bg-[var(--primary)] text-white text-base font-bold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 transition-shadow">
+<span class="truncate">Get Started</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1 px-24 py-12">
+<div class="mx-auto max-w-7xl">
+<section class="grid grid-cols-12 gap-16 items-center mb-32">
+<div class="col-span-6 flex flex-col gap-8">
+<div class="flex flex-col gap-4 text-left">
+<h1 class="text-6xl font-black leading-tight tracking-tighter text-[var(--text-primary)]">Craft Cold Emails That Truly Convert.</h1>
+<p class="text-lg font-normal text-[var(--text-secondary)]">Generate personalized, human-like cold emails in seconds with the power of AI. Say goodbye to writer's block.</p>
+</div>
+<button class="flex w-fit min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-8 bg-[var(--primary)] text-white text-lg font-bold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 transition-all duration-300 ease-in-out transform hover:scale-105">
+<span class="truncate">Try It Free ✨</span>
+</button>
+</div>
+<div class="col-span-6 relative">
+<div class="w-full bg-center bg-no-repeat aspect-[4/3] bg-cover rounded-3xl shadow-2xl transform -rotate-3" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC55TnT5cR2fWalLYHTke5byn8w6q-7FOB8bYEHhrvfk11XCwwHGYmUbKzka4vFLuMKLjw7pQ6OuVDDIHdwrpmJ_moUDXiikhrspdT0pLOLD4SWoHPBYAPWiRlhm0VuSvo77NaNNQL0Oj4iBzhVX7HFn9NVRSwW9COlikHlTGwNgn7cJ8yG77H_WZxQj-LqIoKEVZ3DKAFJX5KPMJcPCqw4L3cJu466-NVMSdwkVCogvI3-D7--5W5K1kQrM6PxVUYwbUWtCPwfiJY");'></div>
+<div class="sticky-note absolute -bottom-10 -right-10 w-64 transform rotate-6" style="background-color: #fffde7; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
+<p class="text-lg font-bold text-[var(--text-primary)]">"This AI is a game-changer!"</p>
+<p class="text-sm text-[var(--text-secondary)] mt-2">- Happy User 🚀</p>
+<div class="absolute top-2 right-2 text-2xl">📌</div>
+</div>
+</div>
+</section>
+<section class="mb-32">
+<h2 class="text-4xl font-bold tracking-tight text-center text-[var(--text-primary)] mb-4">Explore Our Template Wall</h2>
+<p class="text-lg text-[var(--text-secondary)] text-center mb-12 max-w-2xl mx-auto">Get inspired by a collection of proven templates for any situation.</p>
+<div class="flex gap-8 -mx-4 px-4 pb-8 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&amp;::-webkit-scrollbar]:hidden">
+<div class="flex-shrink-0 w-80 flex flex-col gap-4 rounded-2xl p-6 bg-[var(--card-bg)] neumorphic-shadow transition-transform duration-300 hover:-translate-y-2">
+<div class="w-full aspect-video rounded-xl bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBXzoIa7-l-YPotKo0hrAZrdEPNVAVAfRYkChzYgdU1qMRsWSEcozMrSi3-C434aCLw_O2_-YuQ25k1Aqq9A1CZ6OB-J_3ojlBhMeIpkiDYs6WH2j307oW41muxDCjswYvhK2muLg7lBRyR7jf8sqPz3ioysx0yIfIzua-Hgd3eKvxaAi5OmvYIPeL8zkVghjDZlP9Q-6WhJzZ93IK9q4dZqSmOFb7aVZyaURkLpQwLeCZ2nTqNofSwyXs3mn6QuIUNOnF2r5wVzfQ");'></div>
+<div>
+<h3 class="text-lg font-bold text-[var(--text-primary)]">Sales Outreach</h3>
+<p class="text-sm text-[var(--text-secondary)]">Reach out to potential clients with a compelling sales pitch.</p>
+</div>
+</div>
+<div class="flex-shrink-0 w-80 flex flex-col gap-4 rounded-2xl p-6 bg-[var(--card-bg)] neumorphic-shadow transition-transform duration-300 hover:-translate-y-2">
+<div class="w-full aspect-video rounded-xl bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDTPLEItEBk2V6TMMkBIuGnGz_CkG44vg_g24eF1uRGvVj8DHGixYirbr4g3FhnGjYQx0THRhgMM-u7pIdrssQhxrgMKz4l1hC6kUdMKhTzRiVyhwd4ORRFQr3h3lwSIXpExswZB0aLJZRPqZzIdwy2pXmTQ8xd_lkPIXmlNr6T0FP7n0WnmeN_ZBr3Qlvh5y9OvIhu6qM-Qda5Z5YOoAiIS8q7TvIKQPQRnA0Yqh91p7SLkAJ3wtLJ5qSKg6rPsLSw6kdvpsL29Ks");'></div>
+<div>
+<h3 class="text-lg font-bold text-[var(--text-primary)]">Follow-Up</h3>
+<p class="text-sm text-[var(--text-secondary)]">Keep the conversation going with a well-timed follow-up.</p>
+</div>
+</div>
+<div class="flex-shrink-0 w-80 flex flex-col gap-4 rounded-2xl p-6 bg-[var(--card-bg)] neumorphic-shadow transition-transform duration-300 hover:-translate-y-2">
+<div class="w-full aspect-video rounded-xl bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBrrYk4y2tL6pruVjfJ9RQ_SjD-YLj-rCp993GANRm9qs876hubPZQ1TS2OXi-doyo9nDJpC5ZkFhPKtuRoSocOid32KYLogq8HL8ShHraM6Hk_h2GcQSItBG8Y3WdhMp-XM5CqYXJsXF2bY7dOpDhc7FO5nf96eCFMLCh2rUdegruR7NyutOvvZpdhHkprGH2OgHOefryAXOSH6ImKgPxwk2Wu_r_AG1nwil2Dgstavk0nAxhClnKaFzkhqNREC851ceZz7RNK-SA");'></div>
+<div>
+<h3 class="text-lg font-bold text-[var(--text-primary)]">Introduction</h3>
+<p class="text-sm text-[var(--text-secondary)]">Introduce yourself and your company to new contacts.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="mb-24">
+<div class="text-center mb-12">
+<h2 class="text-4xl font-bold tracking-tight text-[var(--text-primary)]">Create Magic in 3 Simple Steps</h2>
+<p class="text-lg text-[var(--text-secondary)] mt-2">Our AI-powered tool makes crafting effective cold emails a breeze.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<div class="flex flex-col items-center text-center p-8 rounded-3xl bg-[var(--accent-blue)]">
+<div class="text-5xl mb-4">✍️</div>
+<h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">1. Write Your Prompt</h3>
+<p class="text-base text-[var(--text-secondary)]">Input your goal and let our AI generate a personalized email draft.</p>
+</div>
+<div class="flex flex-col items-center text-center p-8 rounded-3xl bg-[var(--accent-green)]">
+<div class="text-5xl mb-4">📎</div>
+<h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">2. Add Context</h3>
+<p class="text-base text-[var(--text-secondary)]">Upload files and images to provide crucial context to the AI.</p>
+</div>
+<div class="flex flex-col items-center text-center p-8 rounded-3xl bg-yellow-100">
+<div class="text-5xl mb-4">🚀</div>
+<h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">3. Send &amp; Convert</h3>
+<p class="text-base text-[var(--text-secondary)]">Launch your campaigns and watch your conversion rates soar.</p>
+</div>
+</div>
+</section>
+<section class="text-center bg-[var(--card-bg)] rounded-3xl p-16 neumorphic-shadow">
+<div class="max-w-2xl mx-auto">
+<h2 class="text-4xl font-bold tracking-tight text-[var(--text-primary)]">Ready to Transform Your Outreach?</h2>
+<p class="text-lg text-[var(--text-secondary)] mt-4 mb-8">Start your free trial today and experience the power of AI-driven email creation. No credit card required.</p>
+<button class="flex mx-auto min-w-[180px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-16 px-10 bg-[var(--primary)] text-white text-xl font-bold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 transition-all duration-300 ease-in-out transform hover:scale-105">
+<span class="truncate">Start Generating for Free</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+<footer class="bg-slate-100 py-8">
+<div class="mx-auto max-w-7xl px-10">
+<div class="flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-2">
+<svg class="h-6 w-6 text-[var(--primary)]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21.71,5.29l-4-4a1,1,0,0,0-1.42,0l-12,12a1,1,0,0,0,0,1.42l4,4a1,1,0,0,0,1.42,0l12-12A1,1,0,0,0,21.71,5.29ZM11,12.59,7.41,9,9,7.41,12.59,11ZM15,11.59,10.41,7,12,5.41,16.59,10ZM9.59,14,6,10.41,7.41,9,11,12.59Zm7-7L15,8.59,11.41,5,13,3.41ZM18,13.59,14.41,10,16,8.41,19.59,12Z"></path>
+</svg>
+<span class="text-base font-medium text-[var(--text-secondary)]">© 2024 MailCraft AI. All rights reserved.</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+<a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]" href="#">Terms of Service</a>
+<a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]" href="#">Privacy Policy</a>
+<a class="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]" href="#">Contact Us</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</div>
+
+</body></html>
