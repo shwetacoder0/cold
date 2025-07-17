@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Send, Paperclip, Image, Sparkles, Wand2, Copy, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { generateColdEmail, EmailGenerationResponse } from '../lib/gemini';
 
 const EmailComposer: React.FC = () => {
   const { user, userTokens, useToken } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedEmail, setGeneratedEmail] = useState('');
+  const [generatedEmail, setGeneratedEmail] = useState<EmailGenerationResponse | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [showAuthRequired, setShowAuthRequired] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!user) {
@@ -30,26 +32,26 @@ const EmailComposer: React.FC = () => {
     }
 
     setIsGenerating(true);
+    setError(null);
     
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Process attachments to provide context
+      let attachmentContext = '';
+      if (attachments.length > 0) {
+        attachmentContext = `User has attached ${attachments.length} file(s): ${attachments.map(f => f.name).join(', ')}. Consider this context when generating the email.`;
+      }
+
+      const emailResponse = await generateColdEmail({
+        prompt,
+        attachmentContext
+      });
+
+      setGeneratedEmail(emailResponse);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate email');
+      console.error('Email generation error:', err);
+    }
     
-    const sampleEmail = `Subject: Quick question about ${prompt.split(' ')[0]}
-
-Hi [Name],
-
-I hope this email finds you well. I came across your work at [Company] and was impressed by your approach to ${prompt.toLowerCase()}.
-
-I'm reaching out because I believe there's a potential synergy between what you're doing and what we're building. Our solution has helped companies like yours achieve remarkable results, and I'd love to share how it might benefit your team.
-
-Would you be open to a brief 15-minute call this week to explore this further?
-
-Best regards,
-[Your Name]
-
-P.S. I've attached some relevant case studies that might interest you.`;
-
-    setGeneratedEmail(sampleEmail);
     setIsGenerating(false);
   };
 
@@ -62,6 +64,27 @@ P.S. I've attached some relevant case studies that might interest you.`;
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('Email copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      alert('Failed to copy email');
+    }
+  };
+
+  const downloadEmail = (email: string, filename: string = 'generated-email.txt') => {
+    const blob = new Blob([email], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
   return (
     <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 py-12">
       <div className="max-w-5xl mx-auto px-4 lg:px-8 space-y-6">
@@ -95,7 +118,7 @@ P.S. I've attached some relevant case studies that might interest you.`;
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Example: I want to reach out to SaaS founders to offer our design services. My target is companies with 10-50 employees who might need help with their user interface..."
+                placeholder="Example: I want to reach out to SaaS founders to offer our design services. My target is companies with 10-50 employees who might need help with their user interface. I want to highlight our 5+ years of experience and recent work with similar companies..."
                 className="w-full h-28 p-3 border-2 border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none bg-white/80 text-sm font-semibold text-amber-900"
               />
               
@@ -234,10 +257,18 @@ P.S. I've attached some relevant case studies that might interest you.`;
                 
                 {generatedEmail && (
                   <div className="flex items-center space-x-2">
-                    <button className="p-2 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => copyToClipboard(generatedEmail.fullEmail)}
+                      className="p-2 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors"
+                      title="Copy email"
+                    >
                       <Copy className="w-3 h-3" />
                     </button>
-                    <button className="p-2 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => downloadEmail(generatedEmail.fullEmail)}
+                      className="p-2 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors"
+                      title="Download email"
+                    >
                       <Download className="w-3 h-3" />
                     </button>
                   </div>
@@ -246,16 +277,33 @@ P.S. I've attached some relevant case studies that might interest you.`;
               
               {generatedEmail ? (
                 <div className="space-y-3">
+                  {/* Subject Line */}
+                  <div className="bg-blue-100/50 rounded-xl p-3 shadow-inner border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Send className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-bold text-blue-900">Subject Line</span>
+                    </div>
+                    <p className="text-sm text-blue-900 font-semibold">
+                      {generatedEmail.subject}
+                    </p>
+                  </div>
+                  
+                  {/* Email Body */}
                   <div className="bg-amber-100/50 rounded-xl p-3 shadow-inner border border-amber-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Wand2 className="w-4 h-4 text-amber-600" />
+                      <span className="text-sm font-bold text-amber-900">Email Body</span>
+                    </div>
                     <pre 
                       className="whitespace-pre-wrap text-xs text-amber-900 font-medium"
                     >
-                      {generatedEmail}
+                      {generatedEmail.body}
                     </pre>
                   </div>
                   
                   <div className="flex items-center space-x-2">
                     <button 
+                      onClick={() => copyToClipboard(generatedEmail.fullEmail)}
                       className="flex items-center space-x-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-3 py-2 rounded-xl font-bold hover:from-amber-500 hover:to-orange-600 transition-colors text-xs transform hover:scale-105"
                     >
                       <Copy className="w-3 h-3" />
@@ -277,6 +325,15 @@ P.S. I've attached some relevant case studies that might interest you.`;
                   </div>
                 </div>
               ) : (
+                <div>
+                  {error && (
+                    <div className="mb-4 p-3 bg-red-100/50 rounded-xl border border-red-200">
+                      <p className="text-sm text-red-800 font-medium">
+                        {error}
+                      </p>
+                    </div>
+                  )}
+                  
                 <div className="flex items-center justify-center h-56 text-amber-600">
                   <div className="text-center">
                     <Sparkles className="w-10 h-10 mx-auto mb-3 text-amber-300" />
@@ -291,6 +348,7 @@ P.S. I've attached some relevant case studies that might interest you.`;
                       Describe your goal and click "Generate Email" to get started
                     </p>
                   </div>
+                </div>
                 </div>
               )}
             </div>
