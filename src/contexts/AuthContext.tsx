@@ -171,6 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newTokenCount = tokenAmounts[plan]
 
     try {
+      // In a real application, you would verify the PayPal payment here
+      // For now, we'll simulate a successful purchase
       const { data, error } = await supabase
         .from('user_tokens')
         .update({ 
