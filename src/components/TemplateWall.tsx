@@ -25,7 +25,7 @@ I noticed you're building amazing things at {{company}}. We just launched a tool
 Companies like {{similar_company}} have seen:
 • 40% faster {{process}}
 • 60% reduction in manual work
-• ${{amount}} saved monthly
+• \${{amount}} saved monthly
 
 Would you be open to a 15-minute call this week to see if this could help {{company}} scale faster?
 
