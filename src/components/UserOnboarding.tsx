@@ -159,7 +159,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
                         onClick={() => removeDocument(index)}
                         className="p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors"
                       >
-                        <X className="w-4 h-4" />
+                        
                       </button>
                     </div>
                   ))}
