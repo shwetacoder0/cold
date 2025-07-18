@@ -2,8 +2,13 @@ import React, { useState } from 'react';
 import { Send, Paperclip, Image, Sparkles, Wand2, Copy, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { generateColdEmail, generateColdEmailWithUserContext, EmailGenerationResponse } from '../lib/gemini';
+import { Template } from '../types/template';
 
-const EmailComposer: React.FC = () => {
+interface EmailComposerProps {
+  selectedTemplate?: Template | null;
+}
+
+const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
   const { user, userTokens, userProfile, useToken } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -11,6 +16,13 @@ const EmailComposer: React.FC = () => {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [showAuthRequired, setShowAuthRequired] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Set initial prompt if template is selected
+  React.useEffect(() => {
+    if (selectedTemplate) {
+      setPrompt(`I want to use the "${selectedTemplate.title}" template for ${selectedTemplate.category.toLowerCase()} outreach. Please customize it for my specific situation.`);
+    }
+  }, [selectedTemplate]);
 
   const handleGenerate = async () => {
     if (!user) {
@@ -39,6 +51,13 @@ const EmailComposer: React.FC = () => {
       let attachmentContext = '';
       if (attachments.length > 0) {
         attachmentContext = `User has attached ${attachments.length} file(s): ${attachments.map(f => f.name).join(', ')}. Consider this context when generating the email.`;
+      }
+
+      // Add template context if template is selected
+      let templateContext = '';
+      if (selectedTemplate) {
+        templateContext = `\n\nTemplate to use as base:\nTemplate Name: ${selectedTemplate.title}\nTemplate Category: ${selectedTemplate.category}\nTemplate Content:\n${selectedTemplate.fullContent}\n\nPlease use this template as a foundation and customize it based on the user's specific requirements.`;
+        attachmentContext += templateContext;
       }
 
       // Use user profile context if available
@@ -111,20 +130,48 @@ const EmailComposer: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Input Section */}
           <div className="space-y-5">
+            {/* Template Info */}
+            {selectedTemplate && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-5 shadow-lg border-2 border-blue-200">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div 
+                    className="w-12 h-12 rounded-lg bg-cover bg-center border-2 border-blue-300"
+                    style={{ backgroundImage: `url("${selectedTemplate.image}")` }}
+                  ></div>
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-900 font-work">
+                      Using Template: {selectedTemplate.title}
+                    </h3>
+                    <p className="text-sm text-blue-700 font-medium font-noto">
+                      {selectedTemplate.description}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-white/50 rounded-lg p-3 border border-blue-200">
+                  <p className="text-xs text-blue-800 font-medium">
+                    This template will be used as the foundation for your email. Describe your specific situation below to customize it.
+                  </p>
+                </div>
+              </div>
+            )}
+            
             <div className="bg-gradient-to-br from-white to-amber-50 rounded-2xl p-5 shadow-lg border-2 border-amber-200">
               <div className="flex items-center space-x-2 mb-3">
                 <Wand2 className="w-4 h-4 text-amber-600" />
                 <h3 
                   className="text-base font-bold text-amber-900"
                 >
-                  Describe Your Goal
+                  {selectedTemplate ? 'Customize Your Template' : 'Describe Your Goal'}
                 </h3>
               </div>
               
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Example: I want to reach out to SaaS founders to offer our design services. My target is companies with 10-50 employees who might need help with their user interface. I want to highlight our 5+ years of experience and recent work with similar companies..."
+                placeholder={selectedTemplate 
+                  ? `Describe your specific situation to customize the "${selectedTemplate.title}" template. For example: target audience, your company details, specific value proposition, etc.`
+                  : "Example: I want to reach out to SaaS founders to offer our design services. My target is companies with 10-50 employees who might need help with their user interface. I want to highlight our 5+ years of experience and recent work with similar companies..."
+                }
                 className="w-full h-28 p-3 border-2 border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none bg-white/80 text-sm font-semibold text-amber-900"
               />
               

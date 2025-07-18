@@ -1,21 +1,11 @@
 import React, { useState } from 'react';
-import { Search, Filter, Copy, Heart, Eye, Sparkles } from 'lucide-react';
+import { Search, Filter, Copy, Heart, Eye, Sparkles, ExternalLink } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-
-interface Template {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  preview: string;
-  likes: number;
-  views: number;
-  featured: boolean;
-  image: string;
-}
+import { Template } from '../types/template';
+import TemplateModal from './TemplateModal';
 
 interface TemplateWallProps {
-  onUseTemplate: () => void;
+  onUseTemplate: (template: Template) => void;
   onShowAuth: () => void;
 }
 
@@ -26,6 +16,23 @@ const templates: Template[] = [
     category: 'Sales',
     description: 'Reach out to potential clients with a compelling sales pitch.',
     preview: 'Hi {{name}},\n\nI noticed you\'re building amazing things at {{company}}. We just launched a tool that could save your team 10+ hours per week...',
+    fullContent: `Subject: Quick question about {{company}}'s growth
+
+Hi {{name}},
+
+I noticed you're building amazing things at {{company}}. We just launched a tool that could save your team 10+ hours per week on {{specific_task}}.
+
+Companies like {{similar_company}} have seen:
+• 40% faster {{process}}
+• 60% reduction in manual work
+• ${{amount}} saved monthly
+
+Would you be open to a 15-minute call this week to see if this could help {{company}} scale faster?
+
+Best regards,
+{{your_name}}
+{{your_title}}
+{{your_company}}`,
     likes: 234,
     views: 1200,
     featured: true,
@@ -37,6 +44,22 @@ const templates: Template[] = [
     category: 'Follow-up',
     description: 'Keep the conversation going with a well-timed follow-up.',
     preview: 'Hello {{name}},\n\nYour work with {{company}} in {{industry}} caught my attention. I believe there\'s a perfect synergy between our services...',
+    fullContent: `Subject: Following up on our conversation
+
+Hello {{name}},
+
+I hope this email finds you well. I wanted to follow up on our previous conversation about {{topic}}.
+
+Since we last spoke, I've been thinking about how {{your_solution}} could specifically help {{company}} with {{their_challenge}}.
+
+I've attached a case study showing how we helped {{similar_company}} achieve {{specific_result}} in just {{timeframe}}.
+
+Would you have 10 minutes this week for a quick call to discuss next steps?
+
+Looking forward to hearing from you.
+
+Best,
+{{your_name}}`,
     likes: 189,
     views: 890,
     featured: false,
@@ -48,6 +71,21 @@ const templates: Template[] = [
     category: 'Introduction',
     description: 'Introduce yourself and your company to new contacts.',
     preview: 'Hey {{name}},\n\nI\'ve been following your content on {{platform}} and absolutely love your take on {{topic}}. Would you be interested in collaborating...',
+    fullContent: `Subject: Love your work on {{topic}} - quick collaboration idea
+
+Hey {{name}},
+
+I've been following your content on {{platform}} and absolutely love your take on {{topic}}. Your recent post about {{specific_post}} really resonated with me.
+
+I'm {{your_name}}, {{your_title}} at {{your_company}}. We specialize in {{your_expertise}} and have helped companies like {{client_example}} achieve {{result}}.
+
+I have an idea for a potential collaboration that could benefit both our audiences. Would you be interested in a brief 15-minute chat to explore this?
+
+No pressure at all - just thought there might be some interesting synergies worth discussing.
+
+Cheers,
+{{your_name}}
+{{your_contact}}`,
     likes: 156,
     views: 730,
     featured: true,
@@ -59,6 +97,24 @@ const templates: Template[] = [
     category: 'Partnership',
     description: 'High-converting template for partnership opportunities',
     preview: 'Hi {{name}},\n\nI see {{company}} has been growing rapidly in the {{industry}} space. Most companies your size struggle with {{pain_point}}...',
+    fullContent: `Subject: Partnership opportunity for {{company}}
+
+Hi {{name}},
+
+I see {{company}} has been growing rapidly in the {{industry}} space. Congratulations on {{recent_achievement}}!
+
+Most companies your size struggle with {{pain_point}}, which is exactly what we solve at {{your_company}}.
+
+We've partnered with companies like {{partner_example}} to help them:
+• {{benefit_1}}
+• {{benefit_2}}
+• {{benefit_3}}
+
+I'd love to explore a potential partnership that could drive mutual growth. Are you available for a 20-minute call next week?
+
+Best regards,
+{{your_name}}
+{{your_title}}, {{your_company}}`,
     likes: 298,
     views: 1540,
     featured: false,
@@ -70,6 +126,26 @@ const templates: Template[] = [
     category: 'Content',
     description: 'Perfect for content creators and influencers',
     preview: 'Hello {{name}},\n\nYour recent project at {{company}} looks fantastic! I specialize in {{service}} and have helped similar companies achieve...',
+    fullContent: `Subject: Content collaboration idea for {{platform}}
+
+Hello {{name}},
+
+Your recent content about {{topic}} on {{platform}} was incredibly insightful! I especially loved your point about {{specific_point}}.
+
+I'm {{your_name}}, and I create content around {{your_niche}}. I have {{follower_count}} followers who would absolutely love your expertise.
+
+I'd love to collaborate on:
+• Joint webinar/podcast episode
+• Guest post exchange
+• Social media takeover
+• {{custom_idea}}
+
+Would you be interested in exploring this? I'm happy to share some content ideas that could work well for both our audiences.
+
+Looking forward to potentially working together!
+
+{{your_name}}
+{{your_social_handles}}`,
     likes: 167,
     views: 820,
     featured: false,
@@ -81,6 +157,28 @@ const templates: Template[] = [
     category: 'Investment',
     description: 'Reach out to potential investors',
     preview: 'Dear {{name}},\n\nI\'ve been following your investment portfolio and noticed your interest in {{sector}}. Our startup is solving a major problem...',
+    fullContent: `Subject: {{company_name}} - {{sector}} investment opportunity
+
+Dear {{name}},
+
+I've been following your investment portfolio and noticed your interest in {{sector}} companies, particularly your investment in {{portfolio_company}}.
+
+Our startup, {{company_name}}, is solving a major problem in this space: {{problem_statement}}.
+
+Key highlights:
+• {{traction_metric}} in {{timeframe}}
+• {{revenue_growth}} revenue growth
+• {{team_background}} founding team
+• {{market_size}} addressable market
+
+We're raising a {{round_size}} Series {{round_letter}} to {{use_of_funds}}.
+
+Would you be interested in learning more? I'd love to send over our pitch deck and arrange a brief call.
+
+Best regards,
+{{founder_name}}
+Founder & CEO, {{company_name}}
+{{contact_info}}`,
     likes: 203,
     views: 970,
     featured: true,
@@ -93,14 +191,26 @@ const categories = ['All', 'Sales', 'Follow-up', 'Introduction', 'Partnership', 
 const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const { user } = useAuth();
 
-  const handleUseTemplate = () => {
+  const handleUseTemplate = (template: Template) => {
     if (!user) {
       onShowAuth();
       return;
     }
-    onUseTemplate();
+    onUseTemplate(template);
+  };
+
+  const handleViewTemplate = (template: Template) => {
+    setSelectedTemplate(template);
+    setShowTemplateModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowTemplateModal(false);
+    setSelectedTemplate(null);
   };
 
   const filteredTemplates = templates.filter(template => {
@@ -177,9 +287,13 @@ const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }
               <div 
                 className="w-full aspect-video rounded-lg bg-cover bg-center border-2 border-amber-200"
                 style={{ backgroundImage: `url("${template.image}")` }}
+                onClick={() => handleViewTemplate(template)}
+                role="button"
+                tabIndex={0}
+                className="w-full aspect-video rounded-lg bg-cover bg-center border-2 border-amber-200 cursor-pointer hover:border-amber-300 transition-colors"
               ></div>
               
-              <div>
+              <div onClick={() => handleViewTemplate(template)} className="cursor-pointer">
                 <h3 
                   className="text-base font-bold text-amber-900 mb-1"
                 >
@@ -209,7 +323,13 @@ const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }
                     <Copy className="w-3 h-3" />
                   </button>
                   <button
-                    onClick={handleUseTemplate}
+                    onClick={() => handleViewTemplate(template)}
+                    className="p-2 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => handleUseTemplate(template)}
                     className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-3 py-1.5 rounded-lg font-bold hover:from-amber-500 hover:to-orange-600 transition-all duration-200 shadow-md hover:shadow-lg text-xs transform hover:scale-105"
                   >
                     Use Template
@@ -219,6 +339,13 @@ const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }
             </div>
           ))}
         </div>
+        
+        <TemplateModal
+          template={selectedTemplate}
+          isOpen={showTemplateModal}
+          onClose={handleCloseModal}
+          onUseTemplate={handleUseTemplate}
+        />
       </div>
     </div>
   );

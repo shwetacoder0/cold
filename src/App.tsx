@@ -8,12 +8,14 @@ import EmailComposer from './components/EmailComposer';
 import PricingPage from './components/PricingPage';
 import UserOnboarding from './components/UserOnboarding';
 import Footer from './components/Footer';
+import { Template } from './types/template';
 import { useAuth } from './contexts/AuthContext';
 
 function AppContent() {
   const [activeSection, setActiveSection] = useState<'templates' | 'compose' | 'pricing'>('templates');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const { user, needsOnboarding, purchaseTokens } = useAuth();
 
   const handleShowAuth = (mode: 'signin' | 'signup' = 'signin') => {
@@ -22,6 +24,11 @@ function AppContent() {
   };
 
   const handleNavigateToCompose = () => {
+    setActiveSection('compose');
+  };
+
+  const handleUseTemplate = (template: Template) => {
+    setSelectedTemplate(template);
     setActiveSection('compose');
   };
 
@@ -72,12 +79,12 @@ function AppContent() {
               onNavigateToCompose={handleNavigateToCompose}
             />
             <TemplateWall 
-              onUseTemplate={() => setActiveSection('compose')} 
+              onUseTemplate={handleUseTemplate} 
               onShowAuth={() => handleShowAuth('signin')}
             />
           </>
         ) : activeSection === 'compose' ? (
-          <EmailComposer />
+          <EmailComposer selectedTemplate={selectedTemplate} />
         ) : activeSection === 'pricing' ? (
           <PricingPage onSelectPlan={handleSelectPlan} />
         ) : (
@@ -87,7 +94,7 @@ function AppContent() {
               onNavigateToCompose={handleNavigateToCompose}
             />
             <TemplateWall 
-              onUseTemplate={() => setActiveSection('compose')} 
+              onUseTemplate={handleUseTemplate} 
               onShowAuth={() => handleShowAuth('signin')}
             />
           </>
