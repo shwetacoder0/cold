@@ -330,8 +330,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return { error: new Error('User not authenticated') }
 
     try {
+      // Get existing documents for context
+      const documents = await getUserDocuments()
+      let documentContext = ''
+      
+      if (documents && documents.length > 0) {
+        // For existing documents, we'll just use their names as context
+        // since we don't re-extract text on profile updates
+        documentContext = documents.map(doc => `Document: ${doc.document_name}`).join('\n')
+      }
+
+      // Combine input text with document context
+      let combinedText = inputText.trim()
+      if (documentContext) {
+        combinedText += '\n\n' + documentContext
+      }
+
       // Generate new user details
-      const userDetails = await generateUserDetails(inputText, '')
+      const userDetails = await generateUserDetails(combinedText, '')
 
       const { error } = await supabase
         .from('user_profiles')

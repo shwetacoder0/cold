@@ -1,19 +1,36 @@
 export const extractTextFromPDF = async (file: File): Promise<string> => {
   try {
-    // For now, we'll return a placeholder since pdf-parse requires Node.js
-    // In a real implementation, you'd use a browser-compatible PDF parser
-    // or send the file to a server endpoint for processing
-    
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
-          // This is a simplified approach - in production you'd use a proper PDF parser
           const arrayBuffer = e.target?.result as ArrayBuffer;
+          const uint8Array = new Uint8Array(arrayBuffer);
+          let text = '';
           
-          // For now, we'll extract basic text content
-          // You might want to use libraries like PDF.js or send to backend
-          const text = `Extracted content from ${file.name}`;
+          // Simple text extraction - look for readable text patterns
+          for (let i = 0; i < uint8Array.length - 1; i++) {
+            const char = uint8Array[i];
+            // Extract printable ASCII characters
+            if (char >= 32 && char <= 126) {
+              text += String.fromCharCode(char);
+            } else if (char === 10 || char === 13) {
+              text += ' '; // Replace line breaks with spaces
+            }
+          }
+          
+          // Clean up the extracted text
+          text = text
+            .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+            .replace(/[^\w\s.,!?@-]/g, '') // Keep only alphanumeric, spaces, and basic punctuation
+            .trim();
+          
+          // If we got some meaningful text, return it, otherwise return file info
+          if (text.length > 50) {
+            resolve(text.substring(0, 2000)); // Limit to 2000 characters
+          } else {
+            resolve(`Document: ${file.name} (${(file.size / 1024).toFixed(1)} KB) - Content could not be extracted`);
+          }
           resolve(text);
         } catch (error) {
           console.error('Error extracting PDF text:', error);

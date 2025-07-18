@@ -48,13 +48,18 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
         documentContext = documentTexts.join('\n\n');
       }
 
-      // Generate user details summary using Gemini
-      let userDetails = '';
+      // Combine input text and document context for user details
+      let combinedText = '';
       if (inputText.trim()) {
-        userDetails = await generateUserDetails(inputText, documentContext);
-      } else if (documentContext) {
-        userDetails = await generateUserDetails('', documentContext);
+        combinedText += inputText.trim();
       }
+      if (documentContext) {
+        if (combinedText) combinedText += '\n\n';
+        combinedText += documentContext;
+      }
+
+      // Generate user details summary using Gemini
+      const userDetails = await generateUserDetails(combinedText, '');
 
       // Create user profile
       const { error: profileError } = await createUserProfile({
