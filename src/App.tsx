@@ -11,7 +11,7 @@ import Footer from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
 
 function AppContent() {
-  const [activeSection, setActiveSection] = useState<'templates' | 'compose' | 'pricing' | 'profile'>('templates');
+  const [activeSection, setActiveSection] = useState<'templates' | 'compose' | 'pricing'>('templates');
   const { user, needsOnboarding, purchaseTokens } = useAuth();
 
   const handleSelectPlan = async (plan: 'free' | 'basic' | 'pro') => {
@@ -43,7 +43,7 @@ function AppContent() {
       <Header 
         activeSection={activeSection} 
         setActiveSection={(section) => {
-          if (section === 'pricing' || section === 'profile') {
+          if (section === 'pricing') {
             setActiveSection('pricing');
           } else {
             setActiveSection(section);
@@ -63,8 +63,6 @@ function AppContent() {
           <EmailComposer />
         ) : activeSection === 'pricing' ? (
           <PricingPage onSelectPlan={handleSelectPlan} />
-        ) : activeSection === 'profile' ? (
-          <UserProfile />
         ) : (
           <>
             <Hero />
