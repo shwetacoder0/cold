@@ -16,6 +16,7 @@ interface Template {
 
 interface TemplateWallProps {
   onUseTemplate: () => void;
+  onShowAuth: () => void;
 }
 
 const templates: Template[] = [
@@ -89,14 +90,14 @@ const templates: Template[] = [
 
 const categories = ['All', 'Sales', 'Follow-up', 'Introduction', 'Partnership', 'Content', 'Investment'];
 
-const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate }) => {
+const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useAuth();
 
   const handleUseTemplate = () => {
     if (!user) {
-      alert('Please sign in to use templates!');
+      onShowAuth();
       return;
     }
     onUseTemplate();

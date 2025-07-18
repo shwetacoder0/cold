@@ -1,14 +1,28 @@
 import React from 'react';
-import { ArrowRight, Zap, Target, TrendingUp } from 'lucide-react';
+import { ArrowRight, Zap, Target, TrendingUp, LogIn } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  onShowAuth: () => void;
+  onNavigateToCompose: () => void;
+}
+
+const Hero: React.FC<HeroProps> = ({ onShowAuth, onNavigateToCompose }) => {
   const { user } = useAuth();
 
   const handleTryFree = () => {
     if (!user) {
-      // This would trigger auth modal - we'll need to pass this up to parent
-      alert('Please sign in to try our free tier!');
+      onShowAuth();
+    } else {
+      onNavigateToCompose();
+    }
+  };
+
+  const handleStartGenerating = () => {
+    if (!user) {
+      onShowAuth();
+    } else {
+      onNavigateToCompose();
     }
   };
 
@@ -138,10 +152,10 @@ const Hero: React.FC = () => {
               Start your free trial today and experience the power of AI-driven email creation. No credit card required.
             </p>
             <button 
-              onClick={handleTryFree}
+              onClick={handleStartGenerating}
               className="flex mx-auto min-w-[160px] items-center justify-center h-14 px-8 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-lg font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:from-amber-500 hover:to-orange-600 font-work"
             >
-              <span>Start Generating for Free</span>
+              <span>{user ? 'Start Generating' : 'Sign In to Start'}</span>
             </button>
           </div>
         </section>

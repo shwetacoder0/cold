@@ -1,23 +1,34 @@
 import React, { useState } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
+import AuthModal from './components/AuthModal';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import TemplateWall from './components/TemplateWall';
 import EmailComposer from './components/EmailComposer';
 import PricingPage from './components/PricingPage';
-import UserProfile from './components/UserProfile';
 import UserOnboarding from './components/UserOnboarding';
 import Footer from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
 
 function AppContent() {
   const [activeSection, setActiveSection] = useState<'templates' | 'compose' | 'pricing'>('templates');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const { user, needsOnboarding, purchaseTokens } = useAuth();
+
+  const handleShowAuth = (mode: 'signin' | 'signup' = 'signin') => {
+    setAuthMode(mode);
+    setShowAuthModal(true);
+  };
+
+  const handleNavigateToCompose = () => {
+    setActiveSection('compose');
+  };
 
   const handleSelectPlan = async (plan: 'free' | 'basic' | 'pro') => {
     if (plan === 'free') {
       // Free plan is automatically given on signup
-      alert('You already have the free tier! Sign up to get your 5 free tokens.');
+      handleShowAuth('signup');
       return;
     }
 
@@ -56,8 +67,14 @@ function AppContent() {
           <UserOnboarding onComplete={handleOnboardingComplete} />
         ) : activeSection === 'templates' ? (
           <>
-            <Hero />
-            <TemplateWall onUseTemplate={() => setActiveSection('compose')} />
+            <Hero 
+              onShowAuth={() => handleShowAuth('signup')} 
+              onNavigateToCompose={handleNavigateToCompose}
+            />
+            <TemplateWall 
+              onUseTemplate={() => setActiveSection('compose')} 
+              onShowAuth={() => handleShowAuth('signin')}
+            />
           </>
         ) : activeSection === 'compose' ? (
           <EmailComposer />
@@ -65,11 +82,23 @@ function AppContent() {
           <PricingPage onSelectPlan={handleSelectPlan} />
         ) : (
           <>
-            <Hero />
-            <TemplateWall onUseTemplate={() => setActiveSection('compose')} />
+            <Hero 
+              onShowAuth={() => handleShowAuth('signup')} 
+              onNavigateToCompose={handleNavigateToCompose}
+            />
+            <TemplateWall 
+              onUseTemplate={() => setActiveSection('compose')} 
+              onShowAuth={() => handleShowAuth('signin')}
+            />
           </>
         )}
       </main>
+      
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode={authMode}
+      />
       
       <Footer />
     </div>

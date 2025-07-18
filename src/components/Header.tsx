@@ -306,13 +306,6 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
                     </div>
                   )}
 
-                  <button
-                    onClick={handleSignOut}
-                    className="flex items-center space-x-2 bg-red-100 text-red-700 px-3 py-2 rounded-full hover:bg-red-200 transition-colors shadow-md text-sm font-bold font-work"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
                 </div>
               ) : (
                 <>

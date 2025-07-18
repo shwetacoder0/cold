@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Upload, FileText, User, Sparkles, X, Check } from 'lucide-react';
+import { Upload, FileText, User, Sparkles, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { generateUserDetails } from '../lib/gemini';
+import { extractTextFromDocument } from '../lib/pdfExtractor';
 
 interface UserOnboardingProps {
   onComplete: () => void;
@@ -35,14 +36,24 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
     setError(null);
 
     try {
+      // Extract text from documents
+      let documentContext = '';
+      if (documents.length > 0) {
+        const documentTexts = await Promise.all(
+          documents.map(async (doc) => {
+            const text = await extractTextFromDocument(doc);
+            return `${doc.name}:\n${text}`;
+          })
+        );
+        documentContext = documentTexts.join('\n\n');
+      }
+
       // Generate user details summary using Gemini
       let userDetails = '';
       if (inputText.trim()) {
-        const documentContext = documents.length > 0 
-          ? `User has uploaded ${documents.length} document(s): ${documents.map(f => f.name).join(', ')}.`
-          : '';
-        
         userDetails = await generateUserDetails(inputText, documentContext);
+      } else if (documentContext) {
+        userDetails = await generateUserDetails('', documentContext);
       }
 
       // Create user profile
@@ -67,10 +78,6 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  const handleSkip = () => {
-    onComplete();
   };
 
   return (
@@ -181,12 +188,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
 
             {/* Action Buttons */}
             <div className="flex items-center justify-between pt-4">
-              <button
-                onClick={handleSkip}
-                className="px-6 py-3 text-amber-700 hover:text-amber-900 font-bold transition-colors font-work"
-              >
-                Skip for now
-              </button>
+              <div></div>
               
               <div className="flex items-center space-x-3">
                 <button
