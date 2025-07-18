@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Upload, FileText, User, Sparkles, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { generateUserDetails } from '../lib/gemini';
-import { extractTextFromDocument } from '../lib/pdfExtractor';
 
 interface UserOnboardingProps {
   onComplete: () => void;
@@ -36,30 +35,16 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
     setError(null);
 
     try {
-      // Extract text from documents
+      // Create document context with basic file info
       let documentContext = '';
       if (documents.length > 0) {
-        const documentTexts = await Promise.all(
-          documents.map(async (doc) => {
-            const text = await extractTextFromDocument(doc);
-            return `${doc.name}:\n${text}`;
-          })
-        );
-        documentContext = documentTexts.join('\n\n');
-      }
-
-      // Combine input text and document context for user details
-      let combinedText = '';
-      if (inputText.trim()) {
-        combinedText += inputText.trim();
-      }
-      if (documentContext) {
-        if (combinedText) combinedText += '\n\n';
-        combinedText += documentContext;
+        documentContext = documents.map(doc => 
+          `Document: ${doc.name} (${doc.type}, ${(doc.size / 1024).toFixed(1)} KB)`
+        ).join('\n');
       }
 
       // Generate user details summary using Gemini
-      const userDetails = await generateUserDetails(combinedText, '');
+      const userDetails = await generateUserDetails(inputText.trim(), documentContext);
 
       // Create user profile
       const { error: profileError } = await createUserProfile({
