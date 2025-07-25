@@ -36,7 +36,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
     }
 
     if (!prompt.trim()) return;
-    
+
     const tokenUsed = await useToken();
     if (!tokenUsed) {
       alert('Failed to use token. Please try again.');
@@ -45,7 +45,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
 
     setIsGenerating(true);
     setError(null);
-    
+
     try {
       // Process attachments to provide context
       let attachmentContext = '';
@@ -61,7 +61,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
       }
 
       // Use user profile context if available
-      const emailResponse = userProfile?.user_details 
+      const emailResponse = userProfile?.user_details
         ? await generateColdEmailWithUserContext({
             prompt,
             attachmentContext
@@ -76,7 +76,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
       setError(err instanceof Error ? err.message : 'Failed to generate email');
       console.error('Email generation error:', err);
     }
-    
+
     setIsGenerating(false);
   };
 
@@ -115,12 +115,12 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
       <div className="max-w-5xl mx-auto px-4 lg:px-8 space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h2 
+          <h2
             className="text-3xl font-bold text-amber-900 mb-3"
           >
             AI Email Composer
           </h2>
-          <p 
+          <p
             className="text-base text-amber-700 max-w-xl mx-auto font-medium"
           >
             Tell us about your goal, upload relevant files, and let our AI craft the perfect cold email for you.
@@ -134,7 +134,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
             {selectedTemplate && (
               <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-5 shadow-lg border-2 border-blue-200">
                 <div className="flex items-center space-x-3 mb-3">
-                  <div 
+                  <div
                     className="w-12 h-12 rounded-lg bg-cover bg-center border-2 border-blue-300"
                     style={{ backgroundImage: `url("${selectedTemplate.image}")` }}
                   ></div>
@@ -154,27 +154,27 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                 </div>
               </div>
             )}
-            
+
             <div className="bg-gradient-to-br from-white to-amber-50 rounded-2xl p-5 shadow-lg border-2 border-amber-200">
               <div className="flex items-center space-x-2 mb-3">
                 <Wand2 className="w-4 h-4 text-amber-600" />
-                <h3 
+                <h3
                   className="text-base font-bold text-amber-900"
                 >
                   {selectedTemplate ? 'Customize Your Template' : 'Describe Your Goal'}
                 </h3>
               </div>
-              
+
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder={selectedTemplate 
+                placeholder={selectedTemplate
                   ? `Describe your specific situation to customize the "${selectedTemplate.title}" template. For example: target audience, your company details, specific value proposition, etc.`
                   : "Example: I want to reach out to SaaS founders to offer our design services. My target is companies with 10-50 employees who might need help with their user interface. I want to highlight our 5+ years of experience and recent work with similar companies..."
                 }
                 className="w-full h-28 p-3 border-2 border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none bg-white/80 text-sm font-semibold text-amber-900"
               />
-              
+
               <div className="flex items-center justify-between mt-3">
                 <div className="flex items-center space-x-2">
                   <input
@@ -191,7 +191,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                     <Paperclip className="w-3 h-3" />
                     <span>Attach Files</span>
                   </label>
-                  
+
                   <label
                     htmlFor="file-upload"
                     className="flex items-center space-x-2 px-3 py-2 bg-white/80 text-amber-700 rounded-xl hover:bg-amber-100 transition-colors cursor-pointer border-2 border-amber-200 shadow-md text-xs font-bold transform hover:scale-105"
@@ -200,7 +200,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                     <span>Add Images</span>
                   </label>
                 </div>
-                
+
                 <button
                   onClick={handleGenerate}
                   disabled={!prompt.trim() || isGenerating}
@@ -233,7 +233,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                   )}
                 </button>
               </div>
-              
+
               {!user && (
                 <div className="mt-3 p-3 bg-amber-100/50 rounded-xl border border-amber-200">
                   <p className="text-xs text-amber-800 font-medium">
@@ -241,7 +241,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                   </p>
                 </div>
               )}
-              
+
               {user && userTokens && userTokens.tokens <= 0 && (
                 <div className="mt-3 p-3 bg-red-100/50 rounded-xl border border-red-200">
                   <p className="text-xs text-red-800 font-medium">
@@ -249,7 +249,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                   </p>
                 </div>
               )}
-              
+
               {user && userProfile && (
                 <div className="mt-3 p-3 bg-green-100/50 rounded-xl border border-green-200">
                   <p className="text-xs text-green-800 font-medium">
@@ -262,7 +262,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
             {/* Attachments */}
             {attachments.length > 0 && (
               <div className="bg-gradient-to-br from-white to-amber-50 rounded-2xl p-5 shadow-lg border-2 border-amber-200">
-                <h3 
+                <h3
                   className="text-base font-bold text-amber-900 mb-3"
                 >
                   Attachments
@@ -278,12 +278,12 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                           <Paperclip className="w-3 h-3 text-amber-600" />
                         </div>
                         <div>
-                          <p 
+                          <p
                             className="font-bold text-amber-900 text-sm"
                           >
                             {file.name}
                           </p>
-                          <p 
+                          <p
                             className="text-xs text-amber-700 font-medium"
                           >
                             {(file.size / 1024).toFixed(1)} KB
@@ -309,23 +309,23 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <Send className="w-4 h-4 text-green-600" />
-                  <h3 
+                  <h3
                     className="text-base font-bold text-amber-900"
                   >
                     Generated Email
                   </h3>
                 </div>
-                
+
                 {generatedEmail && (
                   <div className="flex items-center space-x-2">
-                    <button 
+                    <button
                       onClick={() => copyToClipboard(generatedEmail.fullEmail)}
                       className="p-2 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors"
                       title="Copy email"
                     >
                       <Copy className="w-3 h-3" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => downloadEmail(generatedEmail.fullEmail)}
                       className="p-2 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors"
                       title="Download email"
@@ -335,7 +335,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                   </div>
                 )}
               </div>
-              
+
               {generatedEmail ? (
                 <div className="space-y-3">
                   {/* Subject Line */}
@@ -348,30 +348,30 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                       {generatedEmail.subject}
                     </p>
                   </div>
-                  
+
                   {/* Email Body */}
                   <div className="bg-amber-100/50 rounded-xl p-3 shadow-inner border border-amber-200">
                     <div className="flex items-center space-x-2 mb-2">
                       <Wand2 className="w-4 h-4 text-amber-600" />
                       <span className="text-sm font-bold text-amber-900">Email Body</span>
                     </div>
-                    <pre 
+                    <pre
                       className="whitespace-pre-wrap text-xs text-amber-900 font-medium"
                     >
                       {generatedEmail.body}
                     </pre>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
-                    <button 
+                    <button
                       onClick={() => copyToClipboard(generatedEmail.fullEmail)}
                       className="flex items-center space-x-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-3 py-2 rounded-xl font-bold hover:from-amber-500 hover:to-orange-600 transition-colors text-xs transform hover:scale-105"
                     >
                       <Copy className="w-3 h-3" />
                       <span>Copy Email</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       onClick={handleGenerate}
                       disabled={!user || !userTokens || userTokens.tokens <= 0}
                       className={`flex items-center space-x-2 px-3 py-2 rounded-xl font-bold transition-colors text-xs transform hover:scale-105 ${
@@ -394,16 +394,16 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ selectedTemplate }) => {
                       </p>
                     </div>
                   )}
-                  
+
                 <div className="flex items-center justify-center h-56 text-amber-600">
                   <div className="text-center">
                     <Sparkles className="w-10 h-10 mx-auto mb-3 text-amber-300" />
-                    <p 
+                    <p
                       className="font-medium"
                     >
                       Your generated email will appear here
                     </p>
-                    <p 
+                    <p
                       className="text-xs mt-2 font-medium"
                     >
                       Describe your goal and click "Generate Email" to get started

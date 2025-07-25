@@ -9,10 +9,10 @@ import PricingPage from './components/PricingPage';
 import UserOnboarding from './components/UserOnboarding';
 import Footer from './components/Footer';
 import { Template } from './types/template';
-import { useAuth } from './contexts/AuthContext;
+import { useAuth } from './contexts/AuthContext';
 const handleWebhookEvent = async (event: any) => {
   try {
-  
+
     const auth = document.querySelector('#root')?.__REACT_APP_AUTH;
 
     if (auth && auth.processSubscriptionWebhook) {
@@ -51,7 +51,7 @@ function AppContent() {
 
   const handleSelectPlan = async (plan: 'free' | 'basic' | 'pro') => {
     if (plan === 'free') {
-     
+
       handleShowAuth('signup');
       return;
     }

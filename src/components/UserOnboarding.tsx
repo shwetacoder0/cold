@@ -25,7 +25,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
 
   const handleSubmit = async () => {
     if (!user) return;
-    
+
     if (!inputText.trim() && documents.length === 0) {
       setError('Please provide some information about yourself or upload documents.');
       return;
@@ -38,7 +38,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
       // Create document context with basic file info
       let documentContext = '';
       if (documents.length > 0) {
-        documentContext = documents.map(doc => 
+        documentContext = documents.map(doc =>
           `Document: ${doc.name} (${doc.type}, ${(doc.size / 1024).toFixed(1)} KB)`
         ).join('\n');
       }
@@ -159,7 +159,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
                         onClick={() => removeDocument(index)}
                         className="p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors"
                       >
-                        
+
                       </button>
                     </div>
                   ))}
@@ -179,7 +179,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
             {/* Action Buttons */}
             <div className="flex items-center justify-between pt-4">
               <div></div>
-              
+
               <div className="flex items-center space-x-3">
                 <button
                   onClick={handleSubmit}

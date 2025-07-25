@@ -52,7 +52,7 @@ export const generateColdEmail = async (request: EmailGenerationRequest): Promis
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const attachmentContext = request.attachmentContext 
+    const attachmentContext = request.attachmentContext
       ? `\nAdditional Context from attachments: ${request.attachmentContext}`
       : '';
 
@@ -102,17 +102,17 @@ export const generateColdEmail = async (request: EmailGenerationRequest): Promis
 };
 
 export const generateColdEmailWithUserContext = async (
-  request: EmailGenerationRequest, 
+  request: EmailGenerationRequest,
   userDetails: string
 ): Promise<EmailGenerationResponse> => {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const attachmentContext = request.attachmentContext 
+    const attachmentContext = request.attachmentContext
       ? `\nAdditional Context from attachments: ${request.attachmentContext}`
       : '';
 
-    const userContext = userDetails 
+    const userContext = userDetails
       ? `\nUser Background: ${userDetails}`
       : '';
 
