@@ -9,7 +9,7 @@
       - `user_details` (text, processed/summarized user info)
       - `created_at` (timestamp)
       - `updated_at` (timestamp)
-    
+
     - `user_documents`
       - `id` (uuid, primary key)
       - `user_id` (uuid, foreign key to auth.users)
@@ -101,3 +101,53 @@ CREATE TRIGGER update_user_profiles_updated_at
     BEFORE UPDATE ON user_profiles
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Add subscription fields to user_tokens table
+ALTER TABLE public.user_tokens
+ADD COLUMN subscription_start TIMESTAMPTZ DEFAULT now(),
+ADD COLUMN subscription_end TIMESTAMPTZ DEFAULT now() + INTERVAL '1 month',
+ADD COLUMN monthly_tokens INTEGER DEFAULT 5,
+ADD COLUMN tokens_reset_date TIMESTAMPTZ DEFAULT now() + INTERVAL '1 month';
+
+-- Update existing free tier users to have 5 tokens
+UPDATE public.user_tokens
+SET
+  tokens = 5,
+  monthly_tokens = 5,
+  subscription_start = now(),
+  subscription_end = now() + INTERVAL '1 month',
+  tokens_reset_date = now() + INTERVAL '1 month'
+WHERE plan = 'free';
+
+-- Create a function to reset tokens monthly
+CREATE OR REPLACE FUNCTION reset_monthly_tokens()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Check if subscription has ended
+  IF NEW.subscription_end <= NOW() THEN
+    -- Reset to free plan
+    NEW.plan := 'free';
+    NEW.monthly_tokens := 5;
+    NEW.tokens := 5;
+    NEW.subscription_start := NOW();
+    NEW.subscription_end := NOW() + INTERVAL '1 month';
+    NEW.tokens_reset_date := NOW() + INTERVAL '1 month';
+  -- Check if it's time for monthly token reset
+  ELSIF NEW.tokens_reset_date <= NOW() THEN
+    -- Reset tokens to monthly allocation
+    NEW.tokens := NEW.monthly_tokens;
+    NEW.tokens_reset_date := NOW() + INTERVAL '1 month';
+  END IF;
+
+  -- Update the updated_at timestamp
+  NEW.updated_at := NOW();
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to reset tokens monthly
+CREATE TRIGGER reset_monthly_tokens_trigger
+  BEFORE UPDATE ON public.user_tokens
+  FOR EACH ROW
+  EXECUTE FUNCTION reset_monthly_tokens();

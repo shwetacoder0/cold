@@ -11,28 +11,30 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
   const { user } = useAuth();
 
   const paypalOptions = {
-    "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
+    clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
     currency: "USD",
-    intent: "capture"
+    intent: "subscription",
+    vault: true // Required for subscriptions
   };
 
   const planPrices = {
     basic: "1.00",
     pro: "5.00"
   };
-  
+
   const plans = [
     {
       id: 'free',
       name: 'Free Tier',
       price: '$0',
-      tokens: 5,
+      monthlyTokens: 5,
       description: 'Perfect for trying out our AI email generator',
       features: [
-        '5 email generations',
+        '5 email generations per month',
         'Basic templates',
         'Standard support',
-        'No credit card required'
+        'No credit card required',
+        'Monthly token reset'
       ],
       icon: <Zap className="w-6 h-6" />,
       popular: false,
@@ -42,46 +44,52 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
       id: 'basic',
       name: 'Basic Plan',
       price: '$1',
-      tokens: 30,
+      monthlyTokens: 30,
       description: 'Great for small businesses and freelancers',
       features: [
-        '30 email generations',
+        '30 email generations per month',
         'All templates',
         'Priority support',
-        'Advanced customization'
+        'Advanced customization',
+        'Monthly token reset',
+        'Unused tokens expire monthly'
       ],
       icon: <Star className="w-6 h-6" />,
       popular: true,
-      buttonText: 'Choose Basic'
+      buttonText: 'Start Monthly Plan'
     },
     {
       id: 'pro',
       name: 'Pro Plan',
       price: '$5',
-      tokens: 250,
+      monthlyTokens: 250,
       description: 'Perfect for growing teams and agencies',
       features: [
-        '250 email generations',
+        '250 email generations per month',
         'All templates',
         'Premium support',
         'Advanced analytics',
-        'Team collaboration'
+        'Team collaboration',
+        'Monthly token reset',
+        'Priority email generation'
       ],
       icon: <Crown className="w-6 h-6" />,
       popular: false,
-      buttonText: 'Choose Pro'
+      buttonText: 'Start Pro Monthly'
     }
   ];
 
-  const handlePayPalSuccess = async (details: any, plan: 'basic' | 'pro') => {
-    console.log('PayPal payment successful:', details);
+  const handlePayPalSuccess = async (data: any, plan: 'basic' | 'pro') => {
+    console.log('PayPal subscription successful:', data);
     // Call the parent function to handle the plan selection
     onSelectPlan(plan);
+    return Promise.resolve();
   };
 
   const handlePayPalError = (error: any) => {
     console.error('PayPal payment error:', error);
     alert('Payment failed. Please try again.');
+    return Promise.reject(error);
   };
 
   return (
@@ -91,10 +99,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
           {/* Header */}
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-amber-900 mb-4 font-work">
-              Choose Your Plan
+              Choose Your Monthly Plan
             </h2>
             <p className="text-lg text-amber-700 max-w-2xl mx-auto font-noto">
-              Start with our free tier or upgrade for more email generations. Each email generation or regeneration uses 1 token.
+              Subscribe monthly and get a fresh batch of tokens every month. Perfect for consistent email outreach campaigns.
             </p>
           </div>
 
@@ -104,8 +112,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
               <div
                 key={plan.id}
                 className={`relative bg-gradient-to-br from-white to-amber-50 rounded-2xl p-8 shadow-xl border-2 transition-all duration-300 hover:scale-105 ${
-                  plan.popular 
-                    ? 'border-orange-400 ring-4 ring-orange-200' 
+                  plan.popular
+                    ? 'border-orange-400 ring-4 ring-orange-200'
                     : 'border-amber-200'
                 }`}
               >
@@ -119,8 +127,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
 
                 <div className="text-center mb-6">
                   <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 ${
-                    plan.popular 
-                      ? 'bg-gradient-to-br from-orange-400 to-red-500 text-white' 
+                    plan.popular
+                      ? 'bg-gradient-to-br from-orange-400 to-red-500 text-white'
                       : 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
                   }`}>
                     {plan.icon}
@@ -130,8 +138,11 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
                   </h3>
                   <div className="mb-2">
                     <span className="text-4xl font-black text-amber-900">{plan.price}</span>
-                    {plan.id !== 'free' && <span className="text-amber-700 font-medium"> / {plan.tokens} tokens</span>}
+                    <span className="text-amber-700 font-medium">/month</span>
                   </div>
+                  <p className="text-2xl font-bold text-green-600 mb-2">
+                    {plan.monthlyTokens} tokens/month
+                  </p>
                   <p className="text-amber-700 font-medium font-noto">
                     {plan.description}
                   </p>
@@ -160,25 +171,18 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
                         layout: "vertical",
                         color: "gold",
                         shape: "rect",
-                        label: "pay",
+                        label: "subscribe",
                         height: 50
                       }}
-                      createOrder={(data, actions) => {
-                        return actions.order.create({
-                          purchase_units: [{
-                            amount: {
-                              value: planPrices[plan.id as 'basic' | 'pro']
-                            },
-                            description: `${plan.name} - ${plan.tokens} tokens`
-                          }]
+                      createSubscription={(data, actions) => {
+                        return actions.subscription.create({
+                          plan_id: `P-${plan.id.toUpperCase()}`
                         });
                       }}
-                      onApprove={(data, actions) => {
-                        return actions.order!.capture().then((details) => {
-                          handlePayPalSuccess(details, plan.id as 'basic' | 'pro');
-                        });
+                      onApprove={async (data, actions) => {
+                        return handlePayPalSuccess(data, plan.id as 'basic' | 'pro');
                       }}
-                      onError={handlePayPalError}
+                      onError={(err) => handlePayPalError(err)}
                     />
                     <button
                       onClick={() => onSelectPlan(plan.id as 'free' | 'basic' | 'pro')}
@@ -196,16 +200,16 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
           <div className="bg-gradient-to-br from-white to-amber-50 rounded-2xl p-8 shadow-lg border-2 border-amber-200">
             <div className="text-center">
               <h3 className="text-2xl font-bold text-amber-900 mb-4 font-work">
-                How Tokens Work
+                How Monthly Tokens Work
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 <div className="flex items-center space-x-4 p-4 bg-amber-100/50 rounded-xl">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white font-bold">1</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-amber-900 font-work">Email Generation</h4>
-                    <p className="text-sm text-amber-700 font-roboto">Each new email generation uses 1 token</p>
+                    <h4 className="font-bold text-amber-900 font-work">Monthly Reset</h4>
+                    <p className="text-sm text-amber-700 font-roboto">Get fresh tokens at the start of each billing cycle</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4 p-4 bg-amber-100/50 rounded-xl">
@@ -213,8 +217,17 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
                     <span className="text-white font-bold">1</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-amber-900 font-work">Regeneration</h4>
-                    <p className="text-sm text-amber-700 font-roboto">Each regeneration also uses 1 token</p>
+                    <h4 className="font-bold text-amber-900 font-work">Token Usage</h4>
+                    <p className="text-sm text-amber-700 font-roboto">Each email generation uses 1 token</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4 p-4 bg-amber-100/50 rounded-xl">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">!</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-amber-900 font-work">Token Expiry</h4>
+                    <p className="text-sm text-amber-700 font-roboto">Unused tokens expire at the end of each month</p>
                   </div>
                 </div>
               </div>

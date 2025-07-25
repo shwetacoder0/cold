@@ -225,12 +225,12 @@ const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }
       <div className="max-w-6xl mx-auto px-4 lg:px-8">
         {/* Header */}
         <div className="text-center mb-10">
-          <h2 
+          <h2
             className="text-3xl font-bold tracking-tight text-amber-900 mb-3"
           >
             Explore Our Template Wall
           </h2>
-          <p 
+          <p
             className="text-base text-amber-700 max-w-xl mx-auto font-medium"
           >
             Get inspired by a collection of proven templates for any situation.
@@ -249,7 +249,7 @@ const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }
               className="w-full pl-10 pr-3 py-2.5 border-2 border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white/80 shadow-md text-sm font-semibold text-amber-900"
             />
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Filter className="w-4 h-4 text-amber-600" />
             <div className="flex space-x-2 overflow-x-auto">
@@ -283,29 +283,28 @@ const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }
                   <span>Featured</span>
                 </div>
               )}
-              
-              <div 
-                className="w-full aspect-video rounded-lg bg-cover bg-center border-2 border-amber-200"
+
+              <div
                 style={{ backgroundImage: `url("${template.image}")` }}
                 onClick={() => handleViewTemplate(template)}
                 role="button"
                 tabIndex={0}
                 className="w-full aspect-video rounded-lg bg-cover bg-center border-2 border-amber-200 cursor-pointer hover:border-amber-300 transition-colors"
               ></div>
-              
+
               <div onClick={() => handleViewTemplate(template)} className="cursor-pointer">
-                <h3 
+                <h3
                   className="text-base font-bold text-amber-900 mb-1"
                 >
                   {template.title}
                 </h3>
-                <p 
+                <p
                   className="text-xs text-amber-700 font-medium"
                 >
                   {template.description}
                 </p>
               </div>
-              
+
               <div className="flex items-center justify-between mt-auto">
                 <div className="flex items-center space-x-3 text-xs text-amber-600 font-semibold">
                   <div className="flex items-center space-x-1">
@@ -317,7 +316,7 @@ const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }
                     <span>{template.views}</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <button className="p-2 text-amber-600 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors">
                     <Copy className="w-3 h-3" />
@@ -339,7 +338,7 @@ const TemplateWall: React.FC<TemplateWallProps> = ({ onUseTemplate, onShowAuth }
             </div>
           ))}
         </div>
-        
+
         <TemplateModal
           template={selectedTemplate}
           isOpen={showTemplateModal}

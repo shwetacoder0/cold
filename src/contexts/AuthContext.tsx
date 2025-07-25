@@ -5,7 +5,11 @@ import { generateUserDetails } from '../lib/gemini'
 
 interface UserTokens {
   tokens: number
+  monthly_tokens: number
   plan: 'free' | 'basic' | 'pro'
+  subscription_start: string
+  subscription_end: string
+  tokens_reset_date: string
 }
 
 interface UserProfile {
@@ -74,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase
         .from('user_tokens')
-        .select('tokens, plan')
+        .select('tokens, monthly_tokens, plan, subscription_start, subscription_end, tokens_reset_date')
         .eq('user_id', userId)
         .single()
 
@@ -87,10 +91,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserTokens(data)
       } else {
         // Create initial free tier tokens for new user
+        const now = new Date()
+        const monthFromNow = new Date(now)
+        monthFromNow.setMonth(monthFromNow.getMonth() + 1)
+
         const { data: newTokens, error: insertError } = await supabase
           .from('user_tokens')
           .insert([
-            { user_id: userId, tokens: 5, plan: 'free' }
+            {
+              user_id: userId,
+              tokens: 5,
+              monthly_tokens: 5,
+              plan: 'free',
+              subscription_start: now.toISOString(),
+              subscription_end: monthFromNow.toISOString(),
+              tokens_reset_date: monthFromNow.toISOString()
+            }
           ])
           .select()
           .single()
@@ -154,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           window.history.replaceState({}, document.title, window.location.pathname)
         }
       }
-      
+
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
@@ -201,10 +217,98 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error }
   }
 
+  const purchaseTokens = async (plan: 'basic' | 'pro'): Promise<{ error: Error | null }> => {
+    if (!user) return { error: new Error('User not authenticated') }
+
+    const tokenAmounts = { basic: 30, pro: 250 }
+    const newTokenCount = tokenAmounts[plan]
+    const now = new Date()
+    const subscriptionEnd = new Date(now)
+    subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1)
+    const tokensResetDate = new Date(now)
+    tokensResetDate.setMonth(tokensResetDate.getMonth() + 1)
+
+    try {
+      const { data, error } = await supabase
+        .from('user_tokens')
+        .update({
+          tokens: newTokenCount,
+          monthly_tokens: newTokenCount,
+          plan: plan,
+          subscription_start: now.toISOString(),
+          subscription_end: subscriptionEnd.toISOString(),
+          tokens_reset_date: tokensResetDate.toISOString()
+        })
+        .eq('user_id', user.id)
+        .select()
+        .single()
+
+      if (error) {
+        return { error: new Error(error.message) }
+      }
+
+      setUserTokens(data)
+      return { error: null }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  }
+
   const useToken = async (): Promise<boolean> => {
     if (!user || !userTokens) return false
-    
+
     if (userTokens.tokens <= 0) return false
+
+    // Check if subscription has expired
+    const now = new Date()
+    const subscriptionEnd = new Date(userTokens.subscription_end)
+    if (now > subscriptionEnd) {
+      // Reset to free plan
+      const { error } = await supabase
+        .from('user_tokens')
+        .update({
+          tokens: 5,
+          monthly_tokens: 5,
+          plan: 'free',
+          subscription_start: now.toISOString(),
+          subscription_end: new Date(now.setMonth(now.getMonth() + 1)).toISOString(),
+          tokens_reset_date: new Date(now.setMonth(now.getMonth() + 1)).toISOString()
+        })
+        .eq('user_id', user.id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error resetting to free plan:', error)
+        return false
+      }
+      return false
+    }
+
+    // Check if tokens need to be reset
+    const tokensResetDate = new Date(userTokens.tokens_reset_date)
+    if (now > tokensResetDate) {
+      const nextResetDate = new Date(now)
+      nextResetDate.setMonth(nextResetDate.getMonth() + 1)
+
+      const { data, error } = await supabase
+        .from('user_tokens')
+        .update({
+          tokens: userTokens.monthly_tokens,
+          tokens_reset_date: nextResetDate.toISOString()
+        })
+        .eq('user_id', user.id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error resetting tokens:', error)
+        return false
+      }
+
+      setUserTokens(data)
+      return true
+    }
 
     try {
       const { data, error } = await supabase
@@ -224,36 +328,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error in useToken:', error)
       return false
-    }
-  }
-
-  const purchaseTokens = async (plan: 'basic' | 'pro'): Promise<{ error: Error | null }> => {
-    if (!user) return { error: new Error('User not authenticated') }
-
-    const tokenAmounts = { basic: 30, pro: 250 }
-    const newTokenCount = tokenAmounts[plan]
-
-    try {
-      // In a real application, you would verify the PayPal payment here
-      // For now, we'll simulate a successful purchase
-      const { data, error } = await supabase
-        .from('user_tokens')
-        .update({ 
-          tokens: newTokenCount,
-          plan: plan
-        })
-        .eq('user_id', user.id)
-        .select()
-        .single()
-
-      if (error) {
-        return { error: new Error(error.message) }
-      }
-
-      setUserTokens(data)
-      return { error: null }
-    } catch (error) {
-      return { error: error as Error }
     }
   }
 
@@ -297,7 +371,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Refresh profile data
       await fetchUserProfile(user.id)
-      
+
       return { error: null }
     } catch (error) {
       return { error: error as Error }
@@ -333,7 +407,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Get existing documents for context
       const documents = await getUserDocuments()
       let documentContext = ''
-      
+
       if (documents && documents.length > 0) {
         // For existing documents, we'll just use their names as context
         // since we don't re-extract text on profile updates
@@ -364,7 +438,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Refresh profile data
       await fetchUserProfile(user.id)
-      
+
       return { error: null }
     } catch (error) {
       return { error: error as Error }
