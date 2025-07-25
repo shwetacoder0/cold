@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import AuthModal from './components/AuthModal';
 import Header from './components/Header';
@@ -10,6 +10,26 @@ import UserOnboarding from './components/UserOnboarding';
 import Footer from './components/Footer';
 import { Template } from './types/template';
 import { useAuth } from './contexts/AuthContext';
+
+// Webhook handler for Lemon Squeezy events
+// In a real app, this would be a server-side API endpoint
+const handleWebhookEvent = async (event: any) => {
+  try {
+    // Get auth context from the app
+    const auth = document.querySelector('#root')?.__REACT_APP_AUTH;
+
+    if (auth && auth.processSubscriptionWebhook) {
+      await auth.processSubscriptionWebhook(event);
+    }
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+  }
+};
+
+// Make webhook handler available globally
+if (typeof window !== 'undefined') {
+  window.handleLemonSqueezyWebhook = handleWebhookEvent;
+}
 
 function AppContent() {
   const [activeSection, setActiveSection] = useState<'templates' | 'compose' | 'pricing'>('templates');
@@ -58,28 +78,28 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
-      <Header 
-        activeSection={activeSection} 
+      <Header
+        activeSection={activeSection}
         setActiveSection={(section) => {
           if (section === 'pricing') {
             setActiveSection('pricing');
           } else {
             setActiveSection(section);
           }
-        }} 
+        }}
       />
-      
+
       <main className="relative">
         {user && needsOnboarding ? (
           <UserOnboarding onComplete={handleOnboardingComplete} />
         ) : activeSection === 'templates' ? (
           <>
-            <Hero 
-              onShowAuth={() => handleShowAuth('signup')} 
+            <Hero
+              onShowAuth={() => handleShowAuth('signup')}
               onNavigateToCompose={handleNavigateToCompose}
             />
-            <TemplateWall 
-              onUseTemplate={handleUseTemplate} 
+            <TemplateWall
+              onUseTemplate={handleUseTemplate}
               onShowAuth={() => handleShowAuth('signin')}
             />
           </>
@@ -89,30 +109,40 @@ function AppContent() {
           <PricingPage onSelectPlan={handleSelectPlan} />
         ) : (
           <>
-            <Hero 
-              onShowAuth={() => handleShowAuth('signup')} 
+            <Hero
+              onShowAuth={() => handleShowAuth('signup')}
               onNavigateToCompose={handleNavigateToCompose}
             />
-            <TemplateWall 
-              onUseTemplate={handleUseTemplate} 
+            <TemplateWall
+              onUseTemplate={handleUseTemplate}
               onShowAuth={() => handleShowAuth('signin')}
             />
           </>
         )}
       </main>
-      
+
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         initialMode={authMode}
       />
-      
+
       <Footer />
     </div>
   );
 }
 
 function App() {
+  const [authInstance, setAuthInstance] = useState(null);
+
+  // Store auth instance for webhook access
+  const handleAuthInit = (auth: any) => {
+    if (typeof window !== 'undefined' && auth) {
+      (document.querySelector('#root') as any).__REACT_APP_AUTH = auth;
+      setAuthInstance(auth);
+    }
+  };
+
   return (
     <AuthProvider>
       <AppContent />

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { generateUserDetails } from '../lib/gemini'
+import { handleSubscriptionEvent } from '../lib/lemonsqueezy';
 
 interface UserTokens {
   tokens: number
@@ -54,6 +55,7 @@ interface AuthContextType {
   updateUserProfile: (inputText: string) => Promise<{ error: Error | null }>
   getUserDocuments: () => Promise<UserDocument[] | null>
   deleteUserDocument: (documentId: string) => Promise<{ error: Error | null }>
+  processSubscriptionWebhook: (eventData: any) => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -487,6 +489,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  // Add a method to process Lemon Squeezy webhooks
+  const processSubscriptionWebhook = async (eventData: any): Promise<{ error: Error | null }> => {
+    if (!eventData) return { error: new Error('Invalid webhook data') };
+
+    try {
+      // Process the webhook event
+      const subscription = handleSubscriptionEvent(eventData);
+
+      if (!subscription || !subscription.userId) {
+        return { error: new Error('Invalid subscription data') };
+      }
+
+      const { userId, plan, status } = subscription;
+
+      // If subscription is active, update the user's plan
+      if (status === 'active') {
+        const tokenAmounts = { basic: 30, pro: 250, free: 5 };
+        const newTokenCount = tokenAmounts[plan as keyof typeof tokenAmounts];
+        const now = new Date();
+        const subscriptionEnd = new Date(now);
+        subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
+        const tokensResetDate = new Date(now);
+        tokensResetDate.setMonth(tokensResetDate.getMonth() + 1);
+
+        const { error } = await supabase
+          .from('user_tokens')
+          .update({
+            tokens: newTokenCount,
+            monthly_tokens: newTokenCount,
+            plan: plan,
+            subscription_start: now.toISOString(),
+            subscription_end: subscriptionEnd.toISOString(),
+            tokens_reset_date: tokensResetDate.toISOString()
+          })
+          .eq('user_id', userId)
+          .select()
+          .single();
+
+        if (error) {
+          return { error: new Error(error.message) };
+        }
+      }
+      // If subscription is cancelled, downgrade to free
+      else if (status === 'cancelled') {
+        const now = new Date();
+        const monthFromNow = new Date(now);
+        monthFromNow.setMonth(monthFromNow.getMonth() + 1);
+
+        const { error } = await supabase
+          .from('user_tokens')
+          .update({
+            tokens: 5,
+            monthly_tokens: 5,
+            plan: 'free',
+            subscription_start: now.toISOString(),
+            subscription_end: monthFromNow.toISOString(),
+            tokens_reset_date: monthFromNow.toISOString()
+          })
+          .eq('user_id', userId)
+          .select()
+          .single();
+
+        if (error) {
+          return { error: new Error(error.message) };
+        }
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
   const value = {
     user,
     session,
@@ -505,7 +580,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateUserProfile,
     getUserDocuments,
     deleteUserDocument,
-  }
+    processSubscriptionWebhook
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
