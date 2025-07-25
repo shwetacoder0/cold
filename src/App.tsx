@@ -9,13 +9,10 @@ import PricingPage from './components/PricingPage';
 import UserOnboarding from './components/UserOnboarding';
 import Footer from './components/Footer';
 import { Template } from './types/template';
-import { useAuth } from './contexts/AuthContext';
-
-// Webhook handler for Lemon Squeezy events
-// In a real app, this would be a server-side API endpoint
+import { useAuth } from './contexts/AuthContext;
 const handleWebhookEvent = async (event: any) => {
   try {
-    // Get auth context from the app
+  
     const auth = document.querySelector('#root')?.__REACT_APP_AUTH;
 
     if (auth && auth.processSubscriptionWebhook) {
@@ -26,7 +23,7 @@ const handleWebhookEvent = async (event: any) => {
   }
 };
 
-// Make webhook handler available globally
+
 if (typeof window !== 'undefined') {
   window.handleLemonSqueezyWebhook = handleWebhookEvent;
 }
@@ -54,7 +51,7 @@ function AppContent() {
 
   const handleSelectPlan = async (plan: 'free' | 'basic' | 'pro') => {
     if (plan === 'free') {
-      // Free plan is automatically given on signup
+     
       handleShowAuth('signup');
       return;
     }
@@ -135,7 +132,7 @@ function AppContent() {
 function App() {
   const [authInstance, setAuthInstance] = useState(null);
 
-  // Store auth instance for webhook access
+
   const handleAuthInit = (auth: any) => {
     if (typeof window !== 'undefined' && auth) {
       (document.querySelector('#root') as any).__REACT_APP_AUTH = auth;
