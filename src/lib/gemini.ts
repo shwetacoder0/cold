@@ -191,7 +191,7 @@ export const generateUserDetails = async (inputText: string, documentContext: st
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const prompt = `
-You are an AI assistant that creates concise professional summaries. Based on the user's input and any document context, create a brief professional summary that captures the key information for cold email generation.
+You are an AI assistant that creates concise professional summaries. Based on the user's input and any document context, create a professional summary that captures the key information for cold email generation.
 
 Focus on:
 - Professional background and experience
@@ -201,7 +201,7 @@ Focus on:
 - What services/products they offer
 - Target audience or market
 
-Keep it concise (2-3 sentences max) and professional. This will be used to personalize cold emails.
+Keep it decent in size and capture all relevant details in a professional manner. This will be used to personalize cold emails.
 
 User Input: ${inputText}
 ${documentContext ? `\nDocument Context: ${documentContext}` : ''}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Upload, FileText, User, Sparkles, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { generateUserDetails } from '../lib/gemini';
+import { processDocumentsForContext } from '../lib/pdfExtraction';
 
 interface UserOnboardingProps {
   onComplete: () => void;
@@ -13,6 +14,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
   const [documents, setDocuments] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<string>('');
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -33,18 +35,22 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
 
     setIsProcessing(true);
     setError(null);
+    setProcessingStatus('');
 
     try {
-      // Create document context with basic file info
+      // Extract text from PDF documents and create document context
       let documentContext = '';
       if (documents.length > 0) {
-        documentContext = documents.map(doc =>
-          `Document: ${doc.name} (${doc.type}, ${(doc.size / 1024).toFixed(1)} KB)`
-        ).join('\n');
+        setProcessingStatus('Extracting text from documents...');
+        documentContext = await processDocumentsForContext(documents);
       }
 
+      setProcessingStatus('Processing your information with AI...');
       // Generate user details summary using Gemini
       const userDetails = await generateUserDetails(inputText.trim(), documentContext);
+
+      setProcessingStatus('Creating your profile...');
+      // Create user profile
 
       // Create user profile
       const { error: profileError } = await createUserProfile({
@@ -67,6 +73,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
       setError(err instanceof Error ? err.message : 'Failed to create profile');
     } finally {
       setIsProcessing(false);
+      setProcessingStatus('');
     }
   };
 
@@ -167,6 +174,15 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
               </div>
             )}
 
+            {/* Processing Status */}
+            {isProcessing && processingStatus && (
+              <div className="p-4 bg-blue-100/50 rounded-xl border border-blue-200">
+                <p className="text-blue-800 font-medium font-roboto">
+                  {processingStatus}
+                </p>
+              </div>
+            )}
+
             {/* Error Message */}
             {error && (
               <div className="p-4 bg-red-100/50 rounded-xl border border-red-200">
@@ -189,7 +205,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
                   {isProcessing ? (
                     <>
                       <Sparkles className="w-5 h-5 animate-spin" />
-                      <span>Processing...</span>
+                      <span>{processingStatus || 'Processing...'}</span>
                     </>
                   ) : (
                     <>
