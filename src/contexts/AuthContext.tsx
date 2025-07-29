@@ -75,16 +75,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [fetchingTokens, setFetchingTokens] = useState(false)
+  const [fetchingProfile, setFetchingProfile] = useState(false)
 
   const fetchUserTokens = async (userId: string) => {
+    if (fetchingTokens) return // Prevent multiple simultaneous calls
+
+    setFetchingTokens(true)
     try {
       const { data, error } = await supabase
         .from('user_tokens')
         .select('tokens, monthly_tokens, plan, subscription_start, subscription_end, tokens_reset_date')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching user tokens:', error)
         return
       }
@@ -92,14 +97,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data) {
         setUserTokens(data)
       } else {
-        // Create initial free tier tokens for new user
+        // Create initial free tier tokens for new user using UPSERT to handle race conditions
         const now = new Date()
         const monthFromNow = new Date(now)
         monthFromNow.setMonth(monthFromNow.getMonth() + 1)
 
-        const { data: newTokens, error: insertError } = await supabase
+        const { data: newTokens, error: upsertError } = await supabase
           .from('user_tokens')
-          .insert([
+          .upsert([
             {
               user_id: userId,
               tokens: 5,
@@ -109,30 +114,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               subscription_end: monthFromNow.toISOString(),
               tokens_reset_date: monthFromNow.toISOString()
             }
-          ])
+          ], {
+            onConflict: 'user_id',
+            ignoreDuplicates: false
+          })
           .select()
-          .single()
+          .maybeSingle()
 
-        if (insertError) {
-          console.error('Error creating user tokens:', insertError)
-        } else {
+        if (upsertError) {
+          console.error('Error creating/updating user tokens:', upsertError)
+          // If upsert fails, try to fetch the existing record
+          const { data: existingTokens } = await supabase
+            .from('user_tokens')
+            .select('tokens, monthly_tokens, plan, subscription_start, subscription_end, tokens_reset_date')
+            .eq('user_id', userId)
+            .maybeSingle()
+
+          if (existingTokens) {
+            setUserTokens(existingTokens)
+          }
+        } else if (newTokens) {
           setUserTokens(newTokens)
         }
       }
     } catch (error) {
       console.error('Error in fetchUserTokens:', error)
+    } finally {
+      setFetchingTokens(false)
     }
   }
 
   const fetchUserProfile = async (userId: string) => {
+    if (fetchingProfile) return // Prevent multiple simultaneous calls
+
+    setFetchingProfile(true)
     try {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('input_text, user_details, updated_at')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching user profile:', error)
         return
       }
@@ -146,6 +169,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error)
+    } finally {
+      setFetchingProfile(false)
     }
   }
 
@@ -388,7 +413,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('user_profiles')
         .select('input_text, user_details, updated_at')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('Error fetching user profile:', error)
