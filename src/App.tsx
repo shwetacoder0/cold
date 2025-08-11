@@ -10,6 +10,7 @@ import UserOnboarding from './components/UserOnboarding';
 import Footer from './components/Footer';
 import { Template } from './types/template';
 import { useAuth } from './contexts/AuthContext';
+import { Analytics } from '@vercel/analytics/react';
 const handleWebhookEvent = async (event: any) => {
   try {
 
@@ -143,6 +144,7 @@ function App() {
   return (
     <AuthProvider>
       <AppContent />
+      <Analytics />
     </AuthProvider>
   );
 }
