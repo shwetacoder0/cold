@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import AuthModal from './components/AuthModal';
 import Header from './components/Header';
@@ -10,7 +10,6 @@ import UserOnboarding from './components/UserOnboarding';
 import Footer from './components/Footer';
 import { Template } from './types/template';
 import { useAuth } from './contexts/AuthContext';
-import { Analytics } from '@vercel/analytics/react';
 const handleWebhookEvent = async (event: any) => {
   try {
 
@@ -66,7 +65,7 @@ function AppContent() {
         setActiveSection('compose');
       }
     } catch (error) {
-      alert('An error occurred while purchasing the plan.');
+      alert('An error occurred while purchasing the plan.',);
     }
   };
 
@@ -126,7 +125,6 @@ function AppContent() {
       />
 
       <Footer />
-      <Analytics />
     </div>
   );
 }
@@ -145,7 +143,6 @@ function App() {
   return (
     <AuthProvider>
       <AppContent />
-      <Analytics />
     </AuthProvider>
   );
 }
