@@ -126,6 +126,7 @@ function AppContent() {
       />
 
       <Footer />
+      <Analytics />
     </div>
   );
 }
