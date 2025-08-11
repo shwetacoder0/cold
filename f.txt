@@ -1,0 +1,9 @@
+template working
+add columns of links
+ai summary + links + temlate+ text input + attached image ocr + attached pdf
+you can anytime edit the input text and ai summary manually also if new doc is uploaded or input text is altered ai summary will again get generated
+every para of the genrated email you can seperately regenerate takes same amount of tokens
+templates like soham,emotional,crisp
+then different formats like cover letter cold email just para things like this
+hero section design if good transfer the compose thing to home page.
+œ
